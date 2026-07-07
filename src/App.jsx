@@ -142,6 +142,9 @@ export default function App() {
       });
 
       if (!res.ok) {
+        if (res.status === 429) {
+          throw new Error("AI is busy — tap to retry");
+        }
         const errorText = await res.text();
         throw new Error(errorText || "Backend returned an error.");
       }
@@ -973,7 +976,12 @@ export default function App() {
 
                 {/* Error Box */}
                 {extractionError && (
-                  <div className="p-4 bg-ruby/5 border border-ruby/20 rounded-lg flex items-start gap-2.5 text-ruby text-xs">
+                  <div 
+                    onClick={extractionError.includes("retry") ? triggerExtraction : undefined}
+                    className={`p-4 bg-ruby/5 border border-ruby/20 rounded-lg flex items-start gap-2.5 text-ruby text-xs ${
+                      extractionError.includes("retry") ? "cursor-pointer hover:bg-ruby/10 transition-colors" : ""
+                    }`}
+                  >
                     <AlertCircle className="w-4.5 h-4.5 flex-shrink-0 mt-0.5" />
                     <div>
                       <span className="font-semibold">AI Extraction Failed:</span>

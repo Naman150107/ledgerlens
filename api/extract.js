@@ -108,6 +108,10 @@ Ensure your response is raw JSON. Do not include markdown code block styling lik
     });
 
     if (!response.ok) {
+      if (response.status === 429) {
+        res.status(429).json({ error: "AI is busy — tap to retry" });
+        return;
+      }
       const errText = await response.text();
       throw new Error(`Gemini API error (status ${response.status}): ${errText}`);
     }
