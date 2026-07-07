@@ -61,7 +61,7 @@ For each transaction, extract the following:
 - date: The date of transaction in YYYY-MM-DD format. If the date is not specified or partially specified, infer the date or use the current year 2026, or today's date (2026-07-08) as fallback.
 - description: Details of items bought or description (e.g. "Rice 5kg", "Cigarette, Tea").
 - amount: The numeric value of the transaction amount (must be an integer or float, e.g. 450, 120.50). Do not include currency symbols.
-- confidence: Your confidence score for this extraction as a float between 0.0 and 1.0 (e.g. 0.92) based on image readability.
+- confidence: Your confidence score for this extraction as a float between 0.0 and 1.0 based on image readability. For confidence, be strictly calibrated PER ENTRY — do not give all entries the same score. Reduce confidence when: handwriting is unclear or cursive, the entry uses ditto marks (") inherited from a row above, text is crossed out or overwritten, the amount has ambiguous digits, or lighting/angle obscures the row. A clean legible row = 0.9+, an inferred or partially guessed field = 0.5-0.75, barely readable = below 0.5.
 
 Return ONLY a valid JSON object matching the following structure:
 {
