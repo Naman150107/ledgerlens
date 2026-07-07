@@ -40,7 +40,7 @@ export default function App() {
 
   // Modals State
   const [whatsappModal, setWhatsappModal] = useState({ open: false, entry: null, phone: "" });
-  const [upiModal, setUpiModal] = useState({ open: false, entry: null, upiId: "merchant@upi" });
+  const [upiModal, setUpiModal] = useState({ open: false, entry: null, upiId: "9548015166@ptyes" });
   const [editModal, setEditModal] = useState({ open: false, entry: null });
   const [successToast, setSuccessToast] = useState("");
   const [errorToast, setErrorToast] = useState("");
@@ -820,7 +820,7 @@ export default function App() {
                                   <span>Remind</span>
                                 </button>
                                 <button
-                                  onClick={() => setUpiModal({ open: true, entry, upiId: "merchant@upi" })}
+                                  onClick={() => setUpiModal({ open: true, entry, upiId: "9548015166@ptyes" })}
                                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-[11px] transition cursor-pointer"
                                 >
                                   <QrCode className="w-3.5 h-3.5" />
@@ -921,7 +921,7 @@ export default function App() {
                                   </button>
                                   {/* UPI Deep Link QR generator */}
                                   <button
-                                    onClick={() => setUpiModal({ open: true, entry, upiId: "merchant@upi" })}
+                                    onClick={() => setUpiModal({ open: true, entry, upiId: "9548015166@ptyes" })}
                                     className="p-1.5 rounded-full hover:bg-primary-subdued/30 text-primary hover:text-primary-deep transition cursor-pointer"
                                     title="Generate UPI Payment QR"
                                   >
@@ -1441,7 +1441,7 @@ export default function App() {
                 UPI Payment Request
               </h3>
               <button 
-                onClick={() => setUpiModal({ open: false, entry: null, upiId: "merchant@upi" })}
+                onClick={() => setUpiModal({ open: false, entry: null, upiId: "9548015166@ptyes" })}
                 className="text-ink-mute hover:text-ink transition p-1 hover:bg-canvas-soft rounded-full"
               >
                 <X className="w-5 h-5" />
@@ -1515,7 +1515,7 @@ export default function App() {
 
             <div className="p-4 bg-canvas-soft border-t border-hairline flex justify-end">
               <button
-                onClick={() => setUpiModal({ open: false, entry: null, upiId: "merchant@upi" })}
+                onClick={() => setUpiModal({ open: false, entry: null, upiId: "9548015166@ptyes" })}
                 className="px-8 py-2.5 bg-primary hover:bg-primary-deep text-white rounded-pill text-sm font-medium shadow transition cursor-pointer"
               >
                 Done
