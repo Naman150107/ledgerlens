@@ -84,5 +84,8 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss(), apiPlugin()],
+    server: {
+      host: true
+    }
   }
 })

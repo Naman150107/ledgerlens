@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   fetchEntries, 
   saveEntries, 
@@ -20,10 +20,6 @@ import {
 export default function App() {
   // Navigation State
   const [activeTab, setActiveTab] = useState("home"); // 'home' | 'dashboard' | 'scan'
-
-  // Refs for upload / capture inputs
-  const fileInputRef = useRef(null);
-  const cameraInputRef = useRef(null);
 
   // Sort State
   const [sortField, setSortField] = useState("date"); // 'name' | 'date' | 'description' | 'amount'
@@ -903,46 +899,39 @@ export default function App() {
                   <div 
                     onDragOver={handleDragOver}
                     onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
                     className="border-2 border-dashed border-hairline-input rounded-xl p-8 text-center bg-canvas-soft/40 hover:bg-canvas-soft transition duration-200 cursor-pointer flex flex-col items-center justify-center min-h-[220px] group relative"
                   >
+                    {/* Standard File Input (Covers the whole card) */}
                     <input 
                       type="file" 
-                      ref={fileInputRef}
                       accept="image/*" 
-                      className="hidden"
+                      className="absolute inset-0 opacity-0 cursor-pointer z-0"
                       onChange={handleFileChange}
                     />
-                    <input 
-                      type="file" 
-                      ref={cameraInputRef}
-                      accept="image/*" 
-                      capture="environment"
-                      className="hidden"
-                      onChange={handleFileChange}
-                    />
-                    <div className="w-12 h-12 rounded-full bg-primary-subdued/20 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition duration-200">
+                    <div className="w-12 h-12 rounded-full bg-primary-subdued/20 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition duration-200 pointer-events-none">
                       <Upload className="w-6 h-6" />
                     </div>
-                    <p className="text-sm font-medium text-ink px-2">
+                    <p className="text-sm font-medium text-ink px-2 pointer-events-none">
                       <span className="hidden sm:inline">Drag & drop image, or click to browse</span>
                       <span className="inline sm:hidden text-xs">Tap to snap a photo or upload ledger</span>
                     </p>
-                    <p className="text-xs text-ink-mute mt-1.5">
+                    <p className="text-xs text-ink-mute mt-1.5 pointer-events-none">
                       Supports PNG, JPG, WebP. Up to 10MB.
                     </p>
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        cameraInputRef.current?.click();
-                      }}
-                      className="mt-4 inline-flex items-center gap-1.5 text-xs text-primary font-semibold hover:text-primary-deep transition-colors duration-150 cursor-pointer"
-                    >
-                      <Camera className="w-4.5 h-4.5" />
+                    {/* Camera Button Container (z-10 overlays standard input) */}
+                    <div className="relative mt-4 z-10 overflow-hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white border border-hairline rounded-pill text-xs text-primary font-semibold hover:bg-canvas-soft hover:border-hairline-input transition duration-200 shadow-sm cursor-pointer">
+                      {/* Camera Input (Covers only this button, z-20) */}
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        capture="environment"
+                        className="absolute inset-0 opacity-0 cursor-pointer z-20"
+                        onChange={handleFileChange}
+                      />
+                      <Camera className="w-4 h-4" />
                       Use Mobile Camera
-                    </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="relative rounded-xl overflow-hidden shadow-inner bg-canvas-soft border border-hairline">
