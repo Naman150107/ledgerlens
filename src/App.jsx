@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   fetchEntries, 
   saveEntries, 
   deleteEntry, 
+  updateEntry,
   isSupabaseConfigured 
 } from "./lib/supabaseClient";
 import { 
@@ -19,6 +20,10 @@ import {
 export default function App() {
   // Navigation State
   const [activeTab, setActiveTab] = useState("home"); // 'home' | 'dashboard' | 'scan'
+
+  // Refs for upload / capture inputs
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   // Sort State
   const [sortField, setSortField] = useState("date"); // 'name' | 'date' | 'description' | 'amount'
@@ -40,6 +45,7 @@ export default function App() {
   // Modals State
   const [whatsappModal, setWhatsappModal] = useState({ open: false, entry: null, phone: "" });
   const [upiModal, setUpiModal] = useState({ open: false, entry: null, upiId: "merchant@upi" });
+  const [editModal, setEditModal] = useState({ open: false, entry: null });
   const [successToast, setSuccessToast] = useState("");
   const [errorToast, setErrorToast] = useState("");
 
@@ -220,6 +226,23 @@ export default function App() {
       }
     } catch (err) {
       showError("Error deleting transaction.");
+    }
+  };
+ 
+  // Save edited transaction to DB
+  const handleSaveEdit = async () => {
+    if (!editModal.entry || !editModal.entry.id) return;
+    try {
+      const res = await updateEntry(editModal.entry.id, editModal.entry);
+      if (res.success) {
+        showSuccess("Transaction updated successfully!");
+        setEditModal({ open: false, entry: null });
+        loadData();
+      } else {
+        showError("Failed to update transaction.");
+      }
+    } catch (err) {
+      showError("Error updating transaction.");
     }
   };
 
@@ -698,6 +721,13 @@ export default function App() {
                               <span className="text-[10px] text-ink-mute uppercase tracking-widest font-semibold">Actions</span>
                               <div className="flex items-center gap-2">
                                 <button
+                                  onClick={() => setEditModal({ open: true, entry: { ...entry } })}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold text-[11px] transition cursor-pointer"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                  <span>Edit</span>
+                                </button>
+                                <button
                                   onClick={() => setWhatsappModal({ open: true, entry, phone: "" })}
                                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-pill bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-semibold text-[11px] transition cursor-pointer"
                                 >
@@ -788,6 +818,14 @@ export default function App() {
                               </td>
                               <td className="px-4 py-3.5">
                                 <div className="flex items-center justify-center gap-1.5">
+                                  {/* Edit transaction */}
+                                  <button
+                                    onClick={() => setEditModal({ open: true, entry: { ...entry } })}
+                                    className="p-1.5 rounded-full hover:bg-amber-50 text-amber-600 hover:text-amber-700 transition cursor-pointer"
+                                    title="Edit Transaction"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
                                   {/* WhatsApp reminder */}
                                   <button
                                     onClick={() => setWhatsappModal({ open: true, entry, phone: "" })}
@@ -865,12 +903,22 @@ export default function App() {
                   <div 
                     onDragOver={handleDragOver}
                     onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
                     className="border-2 border-dashed border-hairline-input rounded-xl p-8 text-center bg-canvas-soft/40 hover:bg-canvas-soft transition duration-200 cursor-pointer flex flex-col items-center justify-center min-h-[220px] group relative"
                   >
                     <input 
                       type="file" 
+                      ref={fileInputRef}
                       accept="image/*" 
-                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                    <input 
+                      type="file" 
+                      ref={cameraInputRef}
+                      accept="image/*" 
+                      capture="environment"
+                      className="hidden"
                       onChange={handleFileChange}
                     />
                     <div className="w-12 h-12 rounded-full bg-primary-subdued/20 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition duration-200">
@@ -884,10 +932,17 @@ export default function App() {
                       Supports PNG, JPG, WebP. Up to 10MB.
                     </p>
 
-                    <div className="mt-4 inline-flex items-center gap-1.5 text-xs text-primary font-medium">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        cameraInputRef.current?.click();
+                      }}
+                      className="mt-4 inline-flex items-center gap-1.5 text-xs text-primary font-semibold hover:text-primary-deep transition-colors duration-150 cursor-pointer"
+                    >
                       <Camera className="w-4.5 h-4.5" />
                       Use Mobile Camera
-                    </div>
+                    </button>
                   </div>
                 ) : (
                   <div className="relative rounded-xl overflow-hidden shadow-inner bg-canvas-soft border border-hairline">
@@ -1381,6 +1436,105 @@ export default function App() {
                 className="px-8 py-2.5 bg-primary hover:bg-primary-deep text-white rounded-pill text-sm font-medium shadow transition cursor-pointer"
               >
                 Done
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* --- EDIT TRANSACTION MODAL --- */}
+      {editModal.open && editModal.entry && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-md overflow-hidden shadow-2xl border border-hairline animate-zoomIn">
+            
+            <div className="p-6 border-b border-hairline flex items-center justify-between">
+              <h3 className="font-bold text-lg text-ink flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-primary" />
+                Edit Transaction
+              </h3>
+              <button 
+                onClick={() => setEditModal({ open: false, entry: null })}
+                className="text-ink-mute hover:text-ink transition p-1 hover:bg-canvas-soft rounded-full cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-ink-mute uppercase tracking-wider mb-1.5">
+                  Customer Name
+                </label>
+                <input 
+                  type="text" 
+                  value={editModal.entry.name}
+                  onChange={(e) => setEditModal({
+                    ...editModal,
+                    entry: { ...editModal.entry, name: e.target.value }
+                  })}
+                  className="w-full border border-hairline rounded-lg px-3.5 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-ink-mute uppercase tracking-wider mb-1.5">
+                  Date
+                </label>
+                <input 
+                  type="date" 
+                  value={editModal.entry.date}
+                  onChange={(e) => setEditModal({
+                    ...editModal,
+                    entry: { ...editModal.entry, date: e.target.value }
+                  })}
+                  className="w-full border border-hairline rounded-lg px-3.5 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none font-medium tnum"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-ink-mute uppercase tracking-wider mb-1.5">
+                  Amount Owed (₹)
+                </label>
+                <input 
+                  type="number" 
+                  value={editModal.entry.amount}
+                  onChange={(e) => setEditModal({
+                    ...editModal,
+                    entry: { ...editModal.entry, amount: parseFloat(e.target.value) || 0 }
+                  })}
+                  className="w-full border border-hairline rounded-lg px-3.5 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none font-semibold tnum"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-ink-mute uppercase tracking-wider mb-1.5">
+                  Items / Description
+                </label>
+                <input 
+                  type="text" 
+                  value={editModal.entry.description}
+                  onChange={(e) => setEditModal({
+                    ...editModal,
+                    entry: { ...editModal.entry, description: e.target.value }
+                  })}
+                  className="w-full border border-hairline rounded-lg px-3.5 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="p-4 bg-canvas-soft border-t border-hairline flex justify-end gap-3">
+              <button
+                onClick={() => setEditModal({ open: false, entry: null })}
+                className="px-5 py-2.5 border border-hairline rounded-pill text-sm font-medium hover:bg-white transition text-ink-secondary cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="px-6 py-2.5 bg-primary hover:bg-primary-deep text-white rounded-pill text-sm font-medium shadow transition cursor-pointer"
+              >
+                Save Changes
               </button>
             </div>
 

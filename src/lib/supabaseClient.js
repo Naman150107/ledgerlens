@@ -130,3 +130,42 @@ export const deleteEntry = async (id) => {
   localStorage.setItem("ledgerlens_entries", JSON.stringify(updated));
   return { success: true, isFallback: true };
 };
+
+// Update an entry
+export const updateEntry = async (id, updatedFields) => {
+  const formattedFields = {
+    name: updatedFields.name || "Unknown Customer",
+    date: updatedFields.date || new Date().toISOString().split("T")[0],
+    description: updatedFields.description || "General Purchase",
+    amount: parseFloat(updatedFields.amount) || 0
+  };
+
+  if (isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase
+        .from("ledger_entries")
+        .update(formattedFields)
+        .eq("id", id)
+        .select();
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (err) {
+      console.error("Supabase Update Error, falling back to LocalStorage:", err);
+    }
+  }
+
+  // Local Storage Fallback
+  const currentLocal = getLocalEntries();
+  const updated = currentLocal.map(entry => {
+    if (entry.id === id) {
+      return {
+        ...entry,
+        ...formattedFields
+      };
+    }
+    return entry;
+  });
+  localStorage.setItem("ledgerlens_entries", JSON.stringify(updated));
+  return { success: true, isFallback: true };
+};
