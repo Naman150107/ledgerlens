@@ -125,19 +125,63 @@ export default function App() {
     });
   };
 
+  // Downscale image helper using HTML5 Canvas to prevent payload-too-large errors (Vercel has 4.5MB payload cap)
+  const downscaleImage = (file, maxDim = 1600, quality = 0.85) => {
+    return new Promise((resolve, reject) => {
+      if (!file.type.startsWith("image/")) {
+        getBase64(file).then(resolve).catch(reject);
+        return;
+      }
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          // Resize only if image dimensions exceed maxDim
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert canvas back to a base64 jpeg
+          const dataUrl = canvas.toDataURL("image/jpeg", quality);
+          resolve(dataUrl);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
   // AI Extraction call
   const triggerExtraction = async () => {
     if (!file) return;
     setIsExtracting(true);
     setExtractionError("");
     try {
-      const base64Image = await getBase64(file);
+      const base64Image = await downscaleImage(file);
       const res = await fetch("/api/extract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           image: base64Image,
-          mimeType: file.type
+          mimeType: "image/jpeg"
         })
       });
 
