@@ -90,6 +90,29 @@ export const fetchEntries = async () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+
+      // If Supabase is connected but has 0 entries, let's seed it with the demo entries
+      // so the dashboard isn't blank on first open
+      if (data && data.length === 0) {
+        const seedData = INITIAL_DEMO_ENTRIES.map(({ id, created_at, ...rest }) => rest);
+        const { data: seededData, error: seedError } = await supabase
+          .from("ledger_entries")
+          .insert(seedData)
+          .select();
+        
+        if (!seedError && seededData) {
+          // Sort seeded data to match expected order
+          const sortedSeeded = [...seededData].sort((a, b) => {
+            const dateCompare = new Date(b.date) - new Date(a.date);
+            if (dateCompare !== 0) return dateCompare;
+            return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+          });
+          return { success: true, data: sortedSeeded };
+        } else if (seedError) {
+          console.error("Failed to seed Supabase:", seedError);
+        }
+      }
+
       return { success: true, data };
     } catch (err) {
       console.error("Supabase Fetch Error, falling back to LocalStorage:", err);

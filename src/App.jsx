@@ -665,19 +665,61 @@ export default function App() {
                       <BarChart 
                         data={chartData} 
                         layout="vertical"
-                        margin={{ top: 5, right: 10, left: -15, bottom: 5 }}
+                        margin={{ top: 10, right: 15, left: -5, bottom: 5 }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e3e8ee" />
-                        <XAxis type="number" stroke="#64748d" fontSize={10} tickFormatter={(v) => `₹${v}`} />
-                        <YAxis dataKey="name" type="category" stroke="#64748d" fontSize={10} width={75} />
-                        <Tooltip 
-                          formatter={(v) => [`₹${v}`, "Outstanding"]}
-                          contentStyle={{ background: "#0d253d", color: "#fff", borderRadius: "8px", fontSize: "12px" }}
+                        <defs>
+                          {/* Electric Indigo to Primary Soft */}
+                          <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#4434d4" stopOpacity={0.85} />
+                            <stop offset="100%" stopColor="#533afd" stopOpacity={1} />
+                          </linearGradient>
+                          {/* Ruby to Magenta */}
+                          <linearGradient id="barGradRuby" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#ea2261" stopOpacity={0.85} />
+                            <stop offset="100%" stopColor="#f96bee" stopOpacity={1} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f3f6" />
+                        <XAxis 
+                          type="number" 
+                          stroke="#64748d" 
+                          fontSize={10} 
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={(v) => `₹${v}`} 
                         />
-                        <Bar dataKey="amount" radius={[0, 99, 99, 0]} barSize={14}>
-                          {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
+                        <YAxis 
+                          dataKey="name" 
+                          type="category" 
+                          stroke="#0d253d" 
+                          fontSize={11} 
+                          fontWeight={500}
+                          tickLine={false}
+                          axisLine={false}
+                          width={85} 
+                        />
+                        <Tooltip 
+                          cursor={{ fill: 'rgba(83, 58, 253, 0.04)', radius: 4 }}
+                          formatter={(v) => [`₹${v.toLocaleString("en-IN")}`, "Outstanding Dues"]}
+                          contentStyle={{ 
+                            background: "#0d253d", 
+                            color: "#fff", 
+                            borderRadius: "12px", 
+                            fontSize: "12px", 
+                            border: "none", 
+                            boxShadow: "rgba(0, 55, 112, 0.2) 0px 8px 24px" 
+                          }}
+                        />
+                        <Bar 
+                          dataKey="amount" 
+                          radius={[0, 4, 4, 0]} 
+                          barSize={12}
+                          animationDuration={800}
+                        >
+                          {chartData.map((entry, index) => {
+                            const gradId = index % 2 === 0 ? "url(#barGrad)" : "url(#barGradRuby)";
+                            return <Cell key={`cell-${index}`} fill={gradId} />;
+                          })}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
