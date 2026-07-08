@@ -5,7 +5,23 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores([
+    'dist/**',
+    'dist-ssr/**',
+    'node_modules/**',
+    'logs/**',
+    '*.log',
+    '*.local',
+    '.vscode/**',
+    '.idea/**',
+    '.agents/**',
+    '.claude/**',
+    '.kilocode/**',
+    'skills-lock.json',
+    'AGENTS.md',
+    'CLAUDE.md',
+    'GEMINI.md'
+  ]),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -14,8 +30,18 @@ export default defineConfig([
       reactRefresh.configs.vite,
     ],
     languageOptions: {
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+      },
       parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+  },
+  {
+    files: ['vite.config.js', 'eslint.config.js', 'api/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
     },
   },
 ])
